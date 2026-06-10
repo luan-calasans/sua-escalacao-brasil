@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="pt-BR">
+	<head>
+		<meta charset="UTF-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1, minimum-scale=1, user-scalable=no"
+		/>
+		<meta name="theme-color" content="#002776" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="mobile-web-app-capable" content="yes" />
+		<title>Seleção Brasileira — Simulador de Escalação</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
+			rel="stylesheet"
+		/>
+		<link rel="stylesheet" href="assets/css/style.css" />
+		<link rel="preload" as="image" href="assets/images/brasil.png" />
+		<style>
+			body.splash-active .main-layout,
+			body.splash-active .site-footer {
+				visibility: hidden;
+			}
+
+			.splash-intro {
+				position: fixed;
+				inset: 0;
+				z-index: 10000;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				overflow: hidden;
+				background: #001a4d;
+			}
+
+			.splash-intro:not(.splash-intro--playing) .splash-intro__logo,
+			.splash-intro:not(.splash-intro--playing) .splash-intro__title,
+			.splash-intro:not(.splash-intro--playing) .splash-intro__ring {
+				opacity: 0;
+			}
+		</style>
+	</head>
+	<body class="splash-active">
+		<div
+			id="splash-intro"
+			class="splash-intro"
+			role="presentation"
+			aria-hidden="true"
+		>
+			<div class="splash-intro__backdrop">
+				<div class="splash-intro__shine" aria-hidden="true"></div>
+			</div>
+			<div class="splash-intro__rings" aria-hidden="true">
+				<span class="splash-intro__ring"></span>
+				<span class="splash-intro__ring"></span>
+				<span class="splash-intro__ring"></span>
+			</div>
+			<div class="splash-intro__content">
+				<div class="splash-intro__logo-wrap">
+					<div class="splash-intro__logo-halo" aria-hidden="true"></div>
+					<img
+						class="splash-intro__logo"
+						src="assets/images/brasil.png"
+						alt=""
+						width="220"
+						height="220"
+						decoding="async"
+						fetchpriority="high"
+					/>
+				</div>
+				<br />
+				<p class="splash-intro__title">Seleção Brasileira</p>
+			</div>
+		</div>
+
+		<main class="main-layout">
+			<section class="field-section" aria-label="Campo de futebol">
+				<div class="field-wrapper" id="field-panel">
+					<div class="pitch-area">
+						<div id="pitch" class="pitch">
+							<div class="pitch-grass"></div>
+							<div class="pitch-lines">
+								<div class="center-circle"></div>
+								<div class="center-line"></div>
+								<div class="penalty-area penalty-top"></div>
+								<div class="penalty-area penalty-bottom"></div>
+								<div class="goal-area goal-top"></div>
+								<div class="goal-area goal-bottom"></div>
+								<div class="goal goal-top-post"></div>
+								<div class="goal goal-bottom-post"></div>
+							</div>
+							<div id="positions-container" class="positions-container"></div>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<aside class="sidebar-panel" aria-label="Controles e banco de reservas">
+				<header class="header">
+					<select id="formation-select" aria-label="Formação tática"></select>
+					<div class="header-actions">
+						<button
+							type="button"
+							id="btn-download"
+							class="btn btn-download"
+							disabled
+							aria-label="Baixar escalação em PNG"
+						>
+							<svg
+								class="btn-icon"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2.25"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								aria-hidden="true"
+							>
+								<path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
+							</svg>
+							<span class="btn-label">Baixar</span>
+						</button>
+						<button
+							type="button"
+							id="btn-clear"
+							class="btn btn-clear"
+							aria-label="Limpar escalação"
+						>
+							<svg
+								class="btn-icon"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2.25"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								aria-hidden="true"
+							>
+								<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14" />
+							</svg>
+							<span class="btn-label">Limpar</span>
+						</button>
+					</div>
+				</header>
+				<div
+					id="pick-banner"
+					class="pick-banner hidden"
+					role="status"
+					aria-live="polite"
+				>
+					<span id="pick-banner-text"></span>
+					<button
+						type="button"
+						id="pick-banner-cancel"
+						class="pick-banner-cancel"
+					>
+						Cancelar
+					</button>
+				</div>
+				<div class="bench-section">
+					<div id="bench" class="bench"></div>
+				</div>
+			</aside>
+		</main>
+
+		<footer class="site-footer">
+			<p>
+				Desenvolvido por
+				<a
+					href="https://github.com/luan-calasans"
+					target="_blank"
+					rel="noopener noreferrer"
+					>Luan Calasans</a
+				>
+			</p>
+		</footer>
+
+		<!-- Modal de seleção de jogador -->
+		<div
+			id="modal-overlay"
+			class="modal-overlay hidden"
+			role="dialog"
+			aria-modal="true"
+			aria-labelledby="modal-title"
+		>
+			<div class="modal">
+				<header class="modal-header">
+					<h2 id="modal-title">Escolher jogador</h2>
+					<button
+						type="button"
+						id="modal-close"
+						class="modal-close"
+						aria-label="Fechar"
+					>
+						&times;
+					</button>
+				</header>
+				<button
+					type="button"
+					id="modal-remove"
+					class="modal-remove hidden"
+					aria-label="Remover jogador do campo"
+				>
+					<span class="modal-remove__icon" aria-hidden="true">
+						<svg
+							width="22"
+							height="22"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2.25"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						>
+							<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14" />
+						</svg>
+					</span>
+					<span class="modal-remove__text">
+						<span class="modal-remove__label">Remover do campo</span>
+						<span class="modal-remove__hint"
+							>Clique para tirar o jogador desta posição</span
+						>
+					</span>
+				</button>
+				<div class="modal-filters">
+					<input
+						type="search"
+						id="modal-search"
+						placeholder="Pesquisar jogador..."
+						autocomplete="off"
+					/>
+					<select id="modal-position-filter" aria-label="Filtrar por posição">
+						<option value="">Todas as posições</option>
+						<option value="GOL">Goleiros</option>
+						<option value="DEF">Defensores</option>
+						<option value="MEI">Meio-campistas</option>
+						<option value="ATA">Atacantes</option>
+					</select>
+				</div>
+				<div id="modal-players" class="modal-players"></div>
+			</div>
+		</div>
+
+		<!-- Modal de confirmação — substituir jogador -->
+		<div
+			id="confirm-substitute-overlay"
+			class="confirm-overlay hidden"
+			role="dialog"
+			aria-modal="true"
+			aria-labelledby="confirm-substitute-title"
+		>
+			<div class="confirm-dialog">
+				<h2 id="confirm-substitute-title">Substituir jogador?</h2>
+				<p id="confirm-substitute-text" class="confirm-dialog-text"></p>
+				<div class="confirm-dialog-actions">
+					<button
+						type="button"
+						id="confirm-substitute-cancel"
+						class="btn btn-confirm-cancel"
+					>
+						Cancelar
+					</button>
+					<button
+						type="button"
+						id="confirm-substitute-ok"
+						class="btn btn-confirm-ok"
+					>
+						Substituir
+					</button>
+				</div>
+			</div>
+		</div>
+
+		<!-- Modal de confirmação — limpar escalação -->
+		<div
+			id="confirm-clear-overlay"
+			class="confirm-overlay hidden"
+			role="dialog"
+			aria-modal="true"
+			aria-labelledby="confirm-clear-title"
+		>
+			<div class="confirm-dialog">
+				<h2 id="confirm-clear-title">Limpar escalação?</h2>
+				<p class="confirm-dialog-text">
+					Todos os jogadores serão removidos do campo. Esta ação não pode ser
+					desfeita.
+				</p>
+				<div class="confirm-dialog-actions">
+					<button
+						type="button"
+						id="confirm-clear-cancel"
+						class="btn btn-confirm-cancel"
+					>
+						Cancelar
+					</button>
+					<button
+						type="button"
+						id="confirm-clear-ok"
+						class="btn btn-confirm-ok"
+					>
+						Limpar
+					</button>
+				</div>
+			</div>
+		</div>
+
+		<script src="assets/js/script.js" defer></script>
+		<script src="assets/js/export-lineup.js" defer></script>
+		<script>
+			(function () {
+				const SPLASH_MS = 5000;
+				const splash = document.getElementById('splash-intro');
+
+				function startApp() {
+					if (typeof init === 'function') {
+						init();
+						return;
+					}
+					document.addEventListener('DOMContentLoaded', startApp, {
+						once: true,
+					});
+				}
+
+				function boot() {
+					if (!splash) {
+						document.body.classList.remove('splash-active');
+						startApp();
+						return;
+					}
+
+					requestAnimationFrame(() => {
+						requestAnimationFrame(() => {
+							splash.classList.add('splash-intro--playing');
+						});
+					});
+
+					let done = false;
+					function finishSplash() {
+						if (done) return;
+						done = true;
+						splash.classList.add('splash-intro--hide');
+						const onHidden = () => {
+							splash.remove();
+							document.body.classList.remove('splash-active');
+							startApp();
+						};
+						splash.addEventListener('transitionend', onHidden, { once: true });
+						setTimeout(onHidden, 500);
+					}
+
+					setTimeout(finishSplash, SPLASH_MS);
+				}
+
+				if (document.readyState === 'loading') {
+					document.addEventListener('DOMContentLoaded', boot, { once: true });
+				} else {
+					boot();
+				}
+			})();
+		</script>
+	</body>
+</html>
