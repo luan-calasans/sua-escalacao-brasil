@@ -67,7 +67,22 @@ const players = [
 		clube: 'PSG',
 		foto: `${IMAGES_BASE}marquinhos.png`,
 	},
-	// { id: 10, nome: 'Wesley', posicao: 'DEF', clube: 'Roma', foto: `${IMAGES_BASE}wesley.png` },
+	{
+		id: 10,
+		nome: 'Léo Pereira',
+		nomeCurto: 'Léo',
+		posicao: 'DEF',
+		clube: 'Flamengo',
+		foto: `${IMAGES_BASE}leo-pereira.png`,
+	},
+	{
+		id: 26,
+		nome: 'Ibanez',
+		posicao: 'DEF',
+		clube: 'Aston Villa',
+		foto: `${IMAGES_BASE}ibanez.png`,
+	},
+	// { id: 27, nome: 'Wesley', posicao: 'DEF', clube: 'Roma', foto: `${IMAGES_BASE}wesley.png` },
 	{
 		id: 11,
 		nome: 'Bruno Guimarães',
