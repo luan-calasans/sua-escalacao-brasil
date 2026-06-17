@@ -77,7 +77,7 @@ const players = [
 	},
 	{
 		id: 26,
-		nome: 'Ibanez',
+		nome: 'Ibañez',
 		posicao: 'DEF',
 		clube: 'Aston Villa',
 		foto: `${IMAGES_BASE}ibanez.png`,
